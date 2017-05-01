@@ -1,0 +1,3 @@
+
+GET     /create                    @controllers.CarController.createCar()
+GET     /retrieve                  @controllers.CarController.getCars()
