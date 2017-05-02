@@ -1,3 +1,3 @@
 
-GET     /create                    @controllers.CarController.createCar()
-GET     /retrieve                  @controllers.CarController.getCars()
+POST     /carAds                    @controllers.CarAdController.createCarAd()
+GET     /carAds                  @controllers.CarAdController.getCarAds()
