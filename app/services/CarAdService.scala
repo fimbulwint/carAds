@@ -35,7 +35,7 @@ class CarAdService {
                  .withInt(CarAdService.PRICE_FIELD, usedCarAd.price)
                  .withBoolean(CarAdService.NEW_FIELD, false)
                  .withInt(CarAdService.MILEAGE_FIELD, usedCarAd.mileage)
-                 .withString(CarAdService.FIRST_REGISTRATION_FIELD, usedCarAd.firstReg))
+                 .withString(CarAdService.FIRST_REGISTRATION_FIELD, usedCarAd.firstReg.toString))
   }
   
   def getCarAds(): Seq[String] = {

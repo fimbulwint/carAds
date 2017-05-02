@@ -20,6 +20,7 @@ import play.api.libs.json.JsValue
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.json.Reads
+import play.api.libs.json.Writes.dateWrites
 import play.api.mvc.Action
 import play.api.mvc.BodyParsers
 import play.api.mvc.Controller
@@ -31,6 +32,7 @@ import services.CarAdService
 class CarAdController @Inject() (carAdService: CarAdService) extends Controller {
 
   implicit val fuelTypeReads = this.getFuelTypeReads
+  implicit val iso8601DateWrites = dateWrites("yyyy-MM-dd")
 
   implicit val newCarAdReads = Json.reads[NewCarAd]
   implicit val usedCarAdReads = Json.reads[UsedCarAd]
@@ -85,13 +87,12 @@ class CarAdController @Inject() (carAdService: CarAdService) extends Controller 
         Ok("Used car ad created successfully")
       })
   }
-  
+
   private def getFuelTypeReads(): Reads[FuelType] = {
     (JsPath).read[String]
             .map(this.readFuelType)
             .filter(
-                ValidationError("Fuel type not recognized")
-             ){ _.isDefined}
+              ValidationError("Fuel type not recognized")) { _.isDefined }
             .map(_.get)
   }
 
