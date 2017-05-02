@@ -97,6 +97,6 @@ class CarAdController @Inject() (carAdService: CarAdService) extends Controller 
   }
 
   private def readFuelType(fuelType: String): Option[FuelType] = {
-    List(Gasoline, Diesel).find(_.toString == fuelType)
+    List(Gasoline, Diesel).find(_.toString.toLowerCase == fuelType.toLowerCase)
   }
 }
