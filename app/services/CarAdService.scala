@@ -1,7 +1,6 @@
 package services
 
 import scala.collection.JavaConversions.iterableAsScalaIterable
-import scala.util.Random
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
@@ -16,11 +15,11 @@ import models.CarAdTypes.UsedCarAd
 class CarAdService {
   
   private val carAds = new DynamoDB(new AmazonDynamoDBClient().withRegion(Regions.US_EAST_1).asInstanceOf[AmazonDynamoDBClient])
-                              .getTable("CarsTest")
+                              .getTable("CarAds")
 
   def createCarAd(newCarAd: NewCarAd) {
     carAds.putItem(new Item()
-                 .withPrimaryKey(CarAdService.KEY_FIELD, Random.nextPrintableChar + "")
+                 .withPrimaryKey(CarAdService.KEY_FIELD, newCarAd.id)
                  .withString(CarAdService.TITLE_FIELD, newCarAd.title)
                  .withString(CarAdService.FUEL_FIELD, newCarAd.fuel.toString.toLowerCase)
                  .withInt(CarAdService.PRICE_FIELD, newCarAd.price)
@@ -29,7 +28,7 @@ class CarAdService {
   
   def createCarAd(usedCarAd: UsedCarAd) {
     carAds.putItem(new Item()
-                 .withPrimaryKey(CarAdService.KEY_FIELD, Random.nextPrintableChar + "")
+                 .withPrimaryKey(CarAdService.KEY_FIELD, usedCarAd.id)
                  .withString(CarAdService.TITLE_FIELD, usedCarAd.title)
                  .withString(CarAdService.FUEL_FIELD, usedCarAd.fuel.toString.toLowerCase)
                  .withInt(CarAdService.PRICE_FIELD, usedCarAd.price)
