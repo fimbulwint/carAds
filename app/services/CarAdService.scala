@@ -22,7 +22,7 @@ class CarAdService {
     carAds.putItem(new Item()
                  .withPrimaryKey(CarAdService.KEY_FIELD, Random.nextPrintableChar + "")
                  .withString(CarAdService.TITLE_FIELD, newCarAd.title)
-                 .withString(CarAdService.FUEL_FIELD, newCarAd.fuel)
+                 .withString(CarAdService.FUEL_FIELD, newCarAd.fuel.toString.toLowerCase)
                  .withInt(CarAdService.PRICE_FIELD, newCarAd.price)
                  .withBoolean(CarAdService.NEW_FIELD, true))
   }
@@ -31,7 +31,7 @@ class CarAdService {
     carAds.putItem(new Item()
                  .withPrimaryKey(CarAdService.KEY_FIELD, Random.nextPrintableChar + "")
                  .withString(CarAdService.TITLE_FIELD, usedCarAd.title)
-                 .withString(CarAdService.FUEL_FIELD, usedCarAd.fuel)
+                 .withString(CarAdService.FUEL_FIELD, usedCarAd.fuel.toString.toLowerCase)
                  .withInt(CarAdService.PRICE_FIELD, usedCarAd.price)
                  .withBoolean(CarAdService.NEW_FIELD, false)
                  .withInt(CarAdService.MILEAGE_FIELD, usedCarAd.mileage)
