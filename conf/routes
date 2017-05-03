@@ -1,3 +1,5 @@
 
 POST     /carAds                    @controllers.CarAdController.createCarAd()
-GET     /carAds                  @controllers.CarAdController.getCarAds()
+GET      /carAds                    @controllers.CarAdController.getCarAds()
+GET      /carAds/:id                @controllers.CarAdController.getCarAd(id: Int)
+DELETE   /carAds/:id                @controllers.CarAdController.deleteCarAd(id: Int)

@@ -1,74 +1,38 @@
 package services
 
-import java.text.SimpleDateFormat
-import java.util.Date
-
-import scala.collection.JavaConversions._
-
+import scala.collection.JavaConversions.iterableAsScalaIterable
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper
-import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression
-import com.amazonaws.services.dynamodbv2.model.AttributeValue
-
+import com.amazonaws.services.dynamodbv2.document.DynamoDB
+import com.amazonaws.services.dynamodbv2.document.Item
 import javax.inject.Singleton
+import models.CarAdFormats.carAdFormat
 import models.CarAdTypes.CarAd
-import models.CarAdTypes.Diesel
-import models.CarAdTypes.FuelType
-import models.CarAdTypes.Gasoline
-import models.CarAdTypes.NewCarAd
-import models.CarAdTypes.UsedCarAd
+import play.api.libs.json.Json
+import com.amazonaws.services.dynamodbv2.document.PrimaryKey
 
 @Singleton
 class CarAdService {
-
-  private val dynamoMapper = new DynamoDBMapper(new AmazonDynamoDBClient().withRegion(Regions.US_EAST_1))
-
-  def createCarAd(newCarAd: NewCarAd) {
-    val newCarAdDto = new NewCarAdDto()
-    newCarAdDto.setId(newCarAd.id)
-    newCarAdDto.setTitle(newCarAd.title)
-    newCarAdDto.setFuel(newCarAd.fuel.toString.toLowerCase)
-    newCarAdDto.setPrice(newCarAd.price)
-    newCarAdDto.setNew(newCarAd.`new`)
-    dynamoMapper.save(newCarAdDto)
-  }
   
-  def createCarAd(usedCarAd: UsedCarAd) {
-    val usedCarAdDto = new UsedCarAdDto()
-    usedCarAdDto.setId(usedCarAd.id)
-    usedCarAdDto.setTitle(usedCarAd.title)
-    usedCarAdDto.setFuel(usedCarAd.fuel.toString.toLowerCase)
-    usedCarAdDto.setPrice(usedCarAd.price)
-    usedCarAdDto.setNew(usedCarAd.`new`)
-    usedCarAdDto.setMileage(usedCarAd.mileage)
-    usedCarAdDto.setFirstReg(new SimpleDateFormat("yyyy-MM-dd").format(usedCarAd.firstReg))
-    dynamoMapper.save(usedCarAdDto)
+  private final val dynamoClient: AmazonDynamoDBClient = new AmazonDynamoDBClient().withRegion(Regions.US_EAST_1)
+  private final val carAds = new DynamoDB(dynamoClient).getTable("CarAds")
+
+  def createCarAd(carAd: CarAd) {
+    carAds.putItem(Item.fromJSON(Json.toJson(carAd).toString))
   }
-  
   def getCarAds(): Seq[CarAd] = {
-    val newAds = getCarAds(classOf[NewCarAdDto], Map(":isNew" -> new AttributeValue().withN("1"))).map(map(_))
-    val usedAds = getCarAds(classOf[UsedCarAdDto], Map(":isNew" -> new AttributeValue().withN("0"))).map(map(_))
-    newAds ++ usedAds
+    carAds.scan().map(_.toJSON).map(Json.parse(_)).map(Json.fromJson(_)).map(_.asOpt.get).to[Seq]
   }
   
-  private def getCarAds[AdType <: CarAdDto](carAdType: Class[AdType], filter: Map[String, AttributeValue]): Seq[AdType] = {
-    dynamoMapper.scan(carAdType, new DynamoDBScanExpression()
-                               .withFilterExpression("isNew = :isNew")
-                               .withExpressionAttributeValues(filter))
-  }
-
-  private def map(carAdDto: NewCarAdDto): NewCarAd = {
-    new NewCarAd(carAdDto.getId, carAdDto.getTitle, carAdDto.getFuel match {
-      case "gasoline" => Gasoline
-      case "diesel" => Diesel
-    }, carAdDto.getPrice, carAdDto.getNew)
+  def getCarAd(id: Int): Option[CarAd] = {
+    val carAd = carAds.getItem("id", id)
+    if (carAd != null) Json.fromJson(Json.parse(carAd.toJSON)).asOpt else None
   }
   
-  private def map(carAdDto: UsedCarAdDto): UsedCarAd = {
-    new UsedCarAd(carAdDto.getId, carAdDto.getTitle, carAdDto.getFuel match {
-      case "gasoline" => Gasoline
-      case "diesel" => Diesel
-    }, carAdDto.getPrice, carAdDto.getNew, carAdDto.getMileage, new SimpleDateFormat("yyyy-MM-dd").parse(carAdDto.getFirstReg))
+  def deleteCarAd(id: Int): Boolean = {
+    // Workaround, for some reason the deleteItem call always returns an empty item, whether it existed or now
+    val carAd = carAds.getItem("id", id)
+    carAds.deleteItem("id", id)
+    return carAd != null
   }
 }
