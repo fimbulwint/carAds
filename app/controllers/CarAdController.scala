@@ -1,25 +1,14 @@
 package controllers
 
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
-
 import javax.inject.Inject
 import javax.inject.Singleton
 import models.CarAdFormats.carAdFormat
-import models.CarAdFormats.newCarAdFormat
-import models.CarAdFormats.usedCarAdFormat
 import models.CarAdTypes.CarAd
-import models.CarAdTypes.NewCarAd
-import models.CarAdTypes.UsedCarAd
 import play.api.libs.json.JsError
-import play.api.libs.json.JsValue
 import play.api.libs.json.Json
 import play.api.mvc.Action
 import play.api.mvc.BodyParsers
 import play.api.mvc.Controller
-import play.api.mvc.Request
-import play.api.mvc.Result
 import services.CarAdService
 
 @Singleton

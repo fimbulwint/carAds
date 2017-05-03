@@ -8,6 +8,7 @@ import models.CarAdTypes.NewCarAd
 import models.CarAdTypes.UsedCarAd
 import play.api.data.validation.ValidationError
 import play.api.libs.json.Format
+import play.api.libs.json.JsError
 import play.api.libs.json.JsPath
 import play.api.libs.json.JsString
 import play.api.libs.json.JsValue
@@ -33,8 +34,10 @@ object CarAdFormats {
     }
 
     def reads(json: JsValue) = {
-      val isNew = (json \ "new").validate[Boolean].asOpt.get
-      if (isNew) json.validate[NewCarAd] else json.validate[UsedCarAd]
+      (json \ "new").validate[Boolean].asOpt match {
+        case Some(isNew) => if (isNew) json.validate[NewCarAd] else json.validate[UsedCarAd]
+        case None => JsError("Required field 'new' missing")
+      }
     }
 
   }

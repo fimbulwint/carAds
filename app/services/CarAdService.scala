@@ -1,16 +1,17 @@
 package services
 
 import scala.collection.JavaConversions.iterableAsScalaIterable
+
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
 import com.amazonaws.services.dynamodbv2.document.DynamoDB
 import com.amazonaws.services.dynamodbv2.document.Item
+
 import javax.inject.Singleton
 import models.CarAdFormats.carAdFormat
 import models.CarAdTypes.CarAd
 import models.CarAdTypes.Diesel
 import play.api.libs.json.Json
-import com.amazonaws.services.dynamodbv2.document.PrimaryKey
 
 @Singleton
 class CarAdService {
@@ -23,7 +24,8 @@ class CarAdService {
   }
   
   def getCarAds(sortField: String = "id"): Seq[CarAd] = {
-    carAds.scan().map(_.toJSON).map(Json.parse(_)).map(Json.fromJson(_)).map(_.asOpt.get).to[Seq].sortWith(selectSortingFunction(sortField))
+    carAds.scan().map(_.toJSON).map(Json.parse(_)).map(Json.fromJson(_)).map(_.asOpt)
+          .filter(_.isDefined).map(_.get).to[Seq].sortWith(selectSortingFunction(sortField))
   }
   
   def getCarAd(id: Int): Option[CarAd] = {
