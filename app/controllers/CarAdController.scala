@@ -36,8 +36,9 @@ class CarAdController @Inject() (carAdService: CarAdService) extends Controller 
       })
   }
 
-  def getCarAds() = Action { request =>
-    Ok(Json.toJson(carAdService.getCarAds()))
+  def getCarAds(sort: Option[String]) = Action { request =>
+    val carAds = if (sort.isDefined) carAdService.getCarAds(sort.get) else carAdService.getCarAds()
+    Ok(Json.toJson(carAds))
   }
 
   def getCarAd(id: Int) = Action {
