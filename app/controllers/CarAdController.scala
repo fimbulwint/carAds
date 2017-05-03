@@ -6,6 +6,7 @@ import scala.util.Try
 
 import javax.inject.Inject
 import javax.inject.Singleton
+import models.CarAdTypes.CarAd
 import models.CarAdTypes.Diesel
 import models.CarAdTypes.FuelType
 import models.CarAdTypes.Gasoline
@@ -15,11 +16,13 @@ import play.api.data.validation.ValidationError
 import play.api.libs.json.JsDefined
 import play.api.libs.json.JsError
 import play.api.libs.json.JsPath
+import play.api.libs.json.JsString
 import play.api.libs.json.JsUndefined
 import play.api.libs.json.JsValue
 import play.api.libs.json.JsValue.jsValueToJsLookup
 import play.api.libs.json.Json
 import play.api.libs.json.Reads
+import play.api.libs.json.Writes
 import play.api.libs.json.Writes.dateWrites
 import play.api.mvc.Action
 import play.api.mvc.BodyParsers
@@ -32,10 +35,18 @@ import services.CarAdService
 class CarAdController @Inject() (carAdService: CarAdService) extends Controller {
 
   implicit val fuelTypeReads = this.getFuelTypeReads
+  implicit val fuelTypeWrites = this.getFuelTypeWrites
   implicit val iso8601DateWrites = dateWrites("yyyy-MM-dd")
 
-  implicit val newCarAdReads = Json.reads[NewCarAd]
-  implicit val usedCarAdReads = Json.reads[UsedCarAd]
+  implicit val newCarAdFormat = Json.format[NewCarAd]
+  implicit val usedCarAdFormat = Json.format[UsedCarAd]
+
+  implicit val carAdWrites = new Writes[CarAd] {
+    def writes(ad: CarAd) = ad match {
+      case newAd: NewCarAd   => Json.toJson(newAd)
+      case usedAd: UsedCarAd => Json.toJson(usedAd)
+    }
+  }
 
   def createCarAd() = Action(BodyParsers.parse.json) { request =>
     val isCarNew = request.body \ "new"
@@ -98,5 +109,13 @@ class CarAdController @Inject() (carAdService: CarAdService) extends Controller 
 
   private def readFuelType(fuelType: String): Option[FuelType] = {
     List(Gasoline, Diesel).find(_.toString.toLowerCase == fuelType.toLowerCase)
+  }
+
+  private def getFuelTypeWrites(): Writes[FuelType] = {
+    new Writes[FuelType] {
+      def writes(fuel: FuelType): JsString = {
+        new JsString(fuel.toString.toLowerCase)
+      }
+    }
   }
 }

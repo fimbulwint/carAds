@@ -1,53 +1,74 @@
 package services
 
-import scala.collection.JavaConversions.iterableAsScalaIterable
+import java.text.SimpleDateFormat
+import java.util.Date
+
+import scala.collection.JavaConversions._
 
 import com.amazonaws.regions.Regions
 import com.amazonaws.services.dynamodbv2.AmazonDynamoDBClient
-import com.amazonaws.services.dynamodbv2.document.DynamoDB
-import com.amazonaws.services.dynamodbv2.document.Item
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBMapper
+import com.amazonaws.services.dynamodbv2.datamodeling.DynamoDBScanExpression
+import com.amazonaws.services.dynamodbv2.model.AttributeValue
 
 import javax.inject.Singleton
+import models.CarAdTypes.CarAd
+import models.CarAdTypes.Diesel
+import models.CarAdTypes.FuelType
+import models.CarAdTypes.Gasoline
 import models.CarAdTypes.NewCarAd
 import models.CarAdTypes.UsedCarAd
 
 @Singleton
 class CarAdService {
-  
-  private val carAds = new DynamoDB(new AmazonDynamoDBClient().withRegion(Regions.US_EAST_1).asInstanceOf[AmazonDynamoDBClient])
-                              .getTable("CarAds")
+
+  private val dynamoMapper = new DynamoDBMapper(new AmazonDynamoDBClient().withRegion(Regions.US_EAST_1))
 
   def createCarAd(newCarAd: NewCarAd) {
-    carAds.putItem(new Item()
-                 .withPrimaryKey(CarAdService.KEY_FIELD, newCarAd.id)
-                 .withString(CarAdService.TITLE_FIELD, newCarAd.title)
-                 .withString(CarAdService.FUEL_FIELD, newCarAd.fuel.toString.toLowerCase)
-                 .withInt(CarAdService.PRICE_FIELD, newCarAd.price)
-                 .withBoolean(CarAdService.NEW_FIELD, true))
+    val newCarAdDto = new NewCarAdDto()
+    newCarAdDto.setId(newCarAd.id)
+    newCarAdDto.setTitle(newCarAd.title)
+    newCarAdDto.setFuel(newCarAd.fuel.toString.toLowerCase)
+    newCarAdDto.setPrice(newCarAd.price)
+    newCarAdDto.setNew(newCarAd.`new`)
+    dynamoMapper.save(newCarAdDto)
   }
   
   def createCarAd(usedCarAd: UsedCarAd) {
-    carAds.putItem(new Item()
-                 .withPrimaryKey(CarAdService.KEY_FIELD, usedCarAd.id)
-                 .withString(CarAdService.TITLE_FIELD, usedCarAd.title)
-                 .withString(CarAdService.FUEL_FIELD, usedCarAd.fuel.toString.toLowerCase)
-                 .withInt(CarAdService.PRICE_FIELD, usedCarAd.price)
-                 .withBoolean(CarAdService.NEW_FIELD, false)
-                 .withInt(CarAdService.MILEAGE_FIELD, usedCarAd.mileage)
-                 .withString(CarAdService.FIRST_REGISTRATION_FIELD, usedCarAd.firstReg.toString))
+    val usedCarAdDto = new UsedCarAdDto()
+    usedCarAdDto.setId(usedCarAd.id)
+    usedCarAdDto.setTitle(usedCarAd.title)
+    usedCarAdDto.setFuel(usedCarAd.fuel.toString.toLowerCase)
+    usedCarAdDto.setPrice(usedCarAd.price)
+    usedCarAdDto.setNew(usedCarAd.`new`)
+    usedCarAdDto.setMileage(usedCarAd.mileage)
+    usedCarAdDto.setFirstReg(new SimpleDateFormat("yyyy-MM-dd").format(usedCarAd.firstReg))
+    dynamoMapper.save(usedCarAdDto)
   }
   
-  def getCarAds(): Seq[String] = {
-    carAds.scan().map(_.toJSON).to[collection.immutable.Seq]
+  def getCarAds(): Seq[CarAd] = {
+    val newAds = getCarAds(classOf[NewCarAdDto], Map(":isNew" -> new AttributeValue().withN("1"))).map(map(_))
+    val usedAds = getCarAds(classOf[UsedCarAdDto], Map(":isNew" -> new AttributeValue().withN("0"))).map(map(_))
+    newAds ++ usedAds
   }
-}
+  
+  private def getCarAds[AdType <: CarAdDto](carAdType: Class[AdType], filter: Map[String, AttributeValue]): Seq[AdType] = {
+    dynamoMapper.scan(carAdType, new DynamoDBScanExpression()
+                               .withFilterExpression("isNew = :isNew")
+                               .withExpressionAttributeValues(filter))
+  }
 
-object CarAdService {
-  final val KEY_FIELD = "id"
-  final val TITLE_FIELD = "title"
-  final val FUEL_FIELD = "fuel"
-  final val PRICE_FIELD = "price"
-  final val NEW_FIELD = "new"
-  final val MILEAGE_FIELD = "mileage"
-  final val FIRST_REGISTRATION_FIELD = "firstReg"
+  private def map(carAdDto: NewCarAdDto): NewCarAd = {
+    new NewCarAd(carAdDto.getId, carAdDto.getTitle, carAdDto.getFuel match {
+      case "gasoline" => Gasoline
+      case "diesel" => Diesel
+    }, carAdDto.getPrice, carAdDto.getNew)
+  }
+  
+  private def map(carAdDto: UsedCarAdDto): UsedCarAd = {
+    new UsedCarAd(carAdDto.getId, carAdDto.getTitle, carAdDto.getFuel match {
+      case "gasoline" => Gasoline
+      case "diesel" => Diesel
+    }, carAdDto.getPrice, carAdDto.getNew, carAdDto.getMileage, new SimpleDateFormat("yyyy-MM-dd").parse(carAdDto.getFirstReg))
+  }
 }
