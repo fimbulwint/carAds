@@ -30,7 +30,9 @@ Hi! Thanks for reviewing my code. A few remarks on the solution.
 
 The app contains a suite of basic acceptance tests. I didn't have time to add unit tests unfortunately.
 
-Simply run `sbt test` from the project base dir to execute them.
+While I worked on the task, I was both running `sbt test` from command line and executing the suite from my IDE (Eclipse using `sbteclipse` plugin) But at some point
+`sbt test` started failing from some issue related to Guice that I couldn't solve. If you run into the same problem (Guice exceptions from command line tests), please
+run the tests from the IDE instead.
 
 ### Running the code
 
