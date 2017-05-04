@@ -7,16 +7,17 @@ Hi! Thanks for reviewing my code. A few remarks on the solution.
  * I chose to use `int` for the ids. In the past I have normally assigned UUIDs on the server side during the creation of a new resource. But since the field was marked as
   *required* in the requirements, I decided to leave it to the client to generate them.
  * The JSON of a car advert is of the form:
- ```json
-     {
-       "id": 1,
-       "title": "Audi A4",
-       "fuel": "diesel",
-       "price": 40000,
-       "new": false,
-       "mileage": 10000,
-       "firstReg": "2018-09-12"
-     }
+ * The JSON of a car advert is of the form:
+     ```json
+         {
+           "id": 1,
+           "title": "Audi A4",
+           "fuel": "diesel",
+           "price": 40000,
+           "new": false,
+           "mileage": 10000,
+           "firstReg": "2018-09-12"
+         }
     ```
     where *mileage* and *firstReg* are only required if the advert is for a new car. All fields are validated.
  * The ads can be updated using the POST endpoint. I didn't have time to add a PATCH operation for updates.
@@ -31,7 +32,7 @@ Hi! Thanks for reviewing my code. A few remarks on the solution.
 The app contains a suite of basic acceptance tests. I didn't have time to add unit tests unfortunately.
 
 While I worked on the task, I was both running `sbt test` from command line and executing the suite from my IDE (Eclipse using `sbteclipse` plugin) But at some point
-`sbt test` started failing from some issue related to Guice that I couldn't solve. If you run into the same problem (Guice exceptions from command line tests), please
+`sbt test` started failing due to some issue related to Guice that I couldn't solve. If you run into the same problem (Guice exceptions from command line tests), please
 run the tests from the IDE instead.
 
 ### Running the code
