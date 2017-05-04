@@ -7,7 +7,6 @@ Hi! Thanks for reviewing my code. A few remarks on the solution.
  * I chose to use `int` for the ids. In the past I have normally assigned UUIDs on the server side during the creation of a new resource. But since the field was marked as
   *required* in the requirements, I decided to leave it to the client to generate them.
  * The JSON of a car advert is of the form:
- * The JSON of a car advert is of the form:
      ```json
          {
            "id": 1,
@@ -19,13 +18,13 @@ Hi! Thanks for reviewing my code. A few remarks on the solution.
            "firstReg": "2018-09-12"
          }
     ```
-    where *mileage* and *firstReg* are only required if the advert is for a new car. All fields are validated.
+    where *mileage* and *firstReg* are only required if the advert is for a used car. All fields are validated.
  * The ads can be updated using the POST endpoint. I didn't have time to add a PATCH operation for updates.
  * When retrieving the list of all ads, it is possible to send a query parameter `sort=<sortField>` to return the ads in ascending order by the specified field. All common
  fields can be used, but not *mileage* and *firstReg* since new car ads do not have them. If the field is unknown or the param is not passed in the call, then the sorting
  defaults to use *id*
  * I added the CORS filter, but that triggered a strange reflection runtime exception that I didn't have the time to fix, so I ended up removing it.
- * The backend service uses a DynamoDB table called *CarAds* with a numeric primary key called *id*. The application will create the table dynamically if it doesn't exist.
+ * The backend service uses a DynamoDB table named *CarAds* with a numeric primary key named *id*. The application will create the table dynamically if it doesn't exist.
 
 ### Tests
 
